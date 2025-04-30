@@ -2,32 +2,52 @@
 <html>
 <head>
   <title>Your Dashboard</title>
-  <link rel="stylesheet" href="/style.css">
 
+  <!-- Link to your stylesheet -->
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+
+  <!-- Greet the user using their email -->
   <h1>Welcome, <%= user.local.email %></h1>
+
+  <!-- Logout link -->
   <a href="/logout">Logout</a>
 
+  <!-- === Form to Submit a New Support Ticket === -->
   <h2>Submit a New Ticket</h2>
   <form action="/tickets" method="POST">
+    <!-- Input for ticket title -->
     <input name="title" placeholder="Title" required><br>
+
+    <!-- Input for ticket description -->
     <textarea name="description" placeholder="Describe your issue..." required></textarea><br>
+
+    <!-- Submit button -->
     <button type="submit">Submit</button>
   </form>
 
+  <!-- === List of Tickets Submitted by the Logged-In User === -->
   <h2>Your Tickets</h2>
+
+  <!-- If no tickets yet, show a message -->
   <% if (tickets.length === 0) { %>
     <p>You haven’t submitted any tickets yet.</p>
+
+  <!-- Otherwise, list each ticket -->
   <% } else { %>
     <ul>
       <% tickets.forEach(ticket => { %>
         <li>
+          <!-- Show ticket title and status -->
           <strong><%= ticket.title %></strong> - <%= ticket.status %>
+
+          <!-- Link to view the full ticket -->
           (<a href="/tickets/<%= ticket._id %>">view</a>)
         </li>
       <% }) %>
     </ul>
   <% } %>
+
 </body>
 </html>

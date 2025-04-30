@@ -1,37 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <!-- ticket.ejs is one single ticket: shows title, description, status, category, messages, and (conditionally) internal notes. -->
+
+
+  <!-- Set the page title dynamically based on the ticket's title -->
   <title>Ticket - <%= ticket.title %></title>
+
+  <!-- Link to your external CSS stylesheet -->
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+
+  <!-- Display the ticket's main details -->
   <h1>Ticket: <%= ticket.title %></h1>
   <p><strong>Description:</strong> <%= ticket.description %></p>
   <p><strong>Status:</strong> <%= ticket.status %></p>
   <p><strong>Category:</strong> <%= ticket.category %></p>
 
+  <!-- === User Messages Section === -->
   <h2>Messages</h2>
+
+  <!-- Loop through all messages and show sender + message content -->
   <% ticket.messages.forEach(msg => { %>
-    <p><strong><%= msg.sender?.local?.email || 'Unknown' %>:</strong> <%= msg.content %></p>
+    <p>
+      <!-- Show sender's email if available, fallback to "Unknown" -->
+      <strong><%= msg.sender?.local?.email || 'Unknown' %>:</strong> 
+      <%= msg.content %>
+    </p>
   <% }) %>
 
+  <!-- Form to submit a new message for this ticket -->
   <form action="/tickets/<%= ticket._id %>/messages" method="POST">
     <textarea name="message" placeholder="Reply..." required></textarea>
     <button type="submit">Send Message</button>
   </form>
 
+  <!-- === Internal Notes Section (Admins/IT Only) === -->
   <% if (user.local.email.includes('@admin.com') || user.local.email.includes('it@')) { %>
     <h2>Internal Notes</h2>
+
+    <!-- Loop through internal notes for this ticket -->
     <% ticket.internalNotes.forEach(note => { %>
-      <p><strong><%= note.author?.local?.email || 'Unknown' %>:</strong> <%= note.content %></p>
+      <p>
+        <!-- Show note author's email if available, fallback to "Unknown" -->
+        <strong><%= note.author?.local?.email || 'Unknown' %>:</strong> 
+        <%= note.content %>
+      </p>
     <% }) %>
 
+    <!-- Form for admins/IT to add a new internal note -->
     <form action="/tickets/<%= ticket._id %>/internal-notes" method="POST">
       <textarea name="note" placeholder="Add internal note..." required></textarea>
       <button type="submit">Add Note</button>
     </form>
   <% } %>
 
+  <!-- Back link to return to the user's profile or dashboard -->
   <p><a href="/profile">← Back</a></p>
 </body>
 </html>

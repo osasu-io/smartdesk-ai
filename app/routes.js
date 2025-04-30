@@ -1,7 +1,7 @@
 const Ticket = require('./models/ticket');
 const axios = require('axios');
 
-// AI classification function using DeepSeek
+// === AI classification using DeepSeek ===
 async function classifyWithDeepseek(description) {
   const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
     model: 'deepseek-chat',
@@ -16,11 +16,12 @@ async function classifyWithDeepseek(description) {
     }
   });
 
+  // Return the category in lowercase (e.g., "hardware")
   return response.data.choices[0].message.content.trim().toLowerCase();
 }
 
 module.exports = function(app, passport) {
-  // Middleware to check login
+  // === Middleware to protect routes (requires login) ===
   function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) return next();
     res.redirect('/');
@@ -28,16 +29,27 @@ module.exports = function(app, passport) {
 
   // ──────────────── AUTH ROUTES ────────────────
 
+  // Home page (login/signup options)
   app.get('/', (req, res) => res.render('index.ejs'));
 
-  app.get('/login', (req, res) => res.render('login.ejs', { message: req.flash('loginMessage') }));
-  app.get('/signup', (req, res) => res.render('signup.ejs', { message: req.flash('signupMessage') }));
-  app.get('/logout', (req, res) => req.logout(() => res.redirect('/')));
+  // Show login page with flash messages
+  app.get('/login', (req, res) =>
+    res.render('login.ejs', { message: req.flash('loginMessage') }));
 
+  // Show signup page with flash messages
+  app.get('/signup', (req, res) =>
+    res.render('signup.ejs', { message: req.flash('signupMessage') }));
+
+  // Log the user out and redirect to homepage
+  app.get('/logout', (req, res) =>
+    req.logout(() => res.redirect('/')));
+
+  // Handle login form submit
   app.post('/login', passport.authenticate('local-login', {
     failureRedirect: '/login',
     failureFlash: true
   }), function(req, res) {
+    // Redirect based on role
     if (req.user.local.email.includes('@admin.com') || req.user.local.email.includes('it@')) {
       res.redirect('/admin');
     } else {
@@ -45,12 +57,14 @@ module.exports = function(app, passport) {
     }
   });
 
+  // Handle signup form submit
   app.post('/signup', passport.authenticate('local-signup', {
     successRedirect: '/profile',
     failureRedirect: '/signup',
     failureFlash: true
   }));
 
+  // Show profile dashboard with user’s tickets
   app.get('/profile', isLoggedIn, async (req, res) => {
     const tickets = await Ticket.find({ createdBy: req.user._id });
     res.render('profile.ejs', { user: req.user, tickets });
@@ -58,7 +72,7 @@ module.exports = function(app, passport) {
 
   // ──────────────── TICKET ROUTES ────────────────
 
-  // Submit a new ticket
+  // Create new ticket — runs AI category classification before saving
   app.post('/tickets', isLoggedIn, async (req, res) => {
     try {
       const category = await classifyWithDeepseek(req.body.description);
@@ -76,14 +90,14 @@ module.exports = function(app, passport) {
     }
   });
 
-  // View one ticket
+  // View a single ticket
   app.get('/tickets/:id', isLoggedIn, async (req, res) => {
     const ticket = await Ticket.findById(req.params.id)
       .populate('createdBy assignedTo messages.sender internalNotes.author');
     res.render('ticket.ejs', { ticket, user: req.user });
   });
 
-  // Add chat message to ticket
+  // Add a chat message to a ticket
   app.post('/tickets/:id/messages', isLoggedIn, async (req, res) => {
     await Ticket.findByIdAndUpdate(req.params.id, {
       $push: {
@@ -96,7 +110,7 @@ module.exports = function(app, passport) {
     res.redirect(`/tickets/${req.params.id}`);
   });
 
-  // Admin adds internal note
+  // Add internal (admin-only) note to a ticket
   app.post('/tickets/:id/internal-notes', isLoggedIn, async (req, res) => {
     const isAdmin = req.user.local.email.includes('@admin.com') || req.user.local.email.includes('it@');
     if (!isAdmin) return res.status(403).send('Forbidden');
@@ -112,7 +126,7 @@ module.exports = function(app, passport) {
     res.redirect(`/tickets/${req.params.id}`);
   });
 
-  // Admin updates ticket status or assignee
+  // Admin updates ticket (status or assignee)
   app.post('/tickets/:id/update', isLoggedIn, async (req, res) => {
     try {
       const updates = { status: req.body.status };
@@ -125,7 +139,7 @@ module.exports = function(app, passport) {
     }
   });
 
-  // Delete a ticket (user or admin)
+  // Delete a ticket (by creator or admin)
   app.post('/tickets/:id/delete', isLoggedIn, async (req, res) => {
     try {
       const ticket = await Ticket.findById(req.params.id);
@@ -141,7 +155,9 @@ module.exports = function(app, passport) {
 
   // ──────────────── ADMIN DASHBOARD ────────────────
 
+  // Admin dashboard shows all tickets
   app.get('/admin', isLoggedIn, async (req, res) => {
+    // Only admins/IT allowed
     if (!req.user.local.email.includes('@admin.com') && !req.user.local.email.includes('it@')) {
       return res.status(403).send('Not authorized');
     }

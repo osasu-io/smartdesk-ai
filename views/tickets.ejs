@@ -1,38 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
+
+    <!--tickets.ejs displays a list of all support tickets.
+    -->
+    <!-- Link to external CSS file -->
     <link rel="stylesheet" href="/style.css">
 
-  <title>Ticket - <%= ticket.title %></title>
+    <!-- Dynamic title that includes the ticket's title -->
+    <title>Ticket - <%= ticket.title %></title>
 </head>
 <body>
+  <!-- Header showing the ticket title -->
   <h1>Ticket: <%= ticket.title %></h1>
+
+  <!-- Display ticket description -->
   <p><strong>Description:</strong> <%= ticket.description %></p>
+
+  <!-- Show ticket's current status (e.g., Open, Closed, Pending) -->
   <p><strong>Status:</strong> <%= ticket.status %></p>
+
+  <!-- Show ticket's category (e.g., Hardware, Software, Network) -->
   <p><strong>Category:</strong> <%= ticket.category %></p>
 
+  <!-- === Public Chat Section === -->
   <h2>Chat</h2>
+
+  <!-- Loop through all public messages and display each sender's email and message content -->
   <% ticket.messages.forEach(msg => { %>
     <p><strong><%= msg.sender.local.email %>:</strong> <%= msg.content %></p>
   <% }) %>
 
+  <!-- Form to send a new public message on the ticket -->
   <form action="/tickets/<%= ticket._id %>/messages" method="POST">
     <textarea name="message" required placeholder="Reply..."></textarea>
     <button type="submit">Send</button>
   </form>
 
+  <!-- === Internal Notes Section (Only for Admin/IT Users) === -->
   <% if (user.local.email.includes('@admin.com') || user.local.email.includes('it@')) { %>
     <h2>Internal Notes</h2>
+
+    <!-- Loop through all internal notes (only visible to staff) -->
     <% ticket.internalNotes.forEach(note => { %>
       <p><strong><%= note.author.local.email %></strong>: <%= note.content %></p>
     <% }) %>
 
+    <!-- Form to add a new internal note (for admin/IT eyes only) -->
     <form action="/tickets/<%= ticket._id %>/internal-notes" method="POST">
       <textarea name="note" required placeholder="Admin-only note..."></textarea>
       <button type="submit">Add Note</button>
     </form>
   <% } %>
 
+  <!-- Link to go back to the profile/dashboard page -->
   <p><a href="/profile">← Back</a></p>
 </body>
 </html>
