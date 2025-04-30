@@ -1,0 +1,28 @@
+body {
+  font-family: sans-serif;
+  background: #f8f8f8;
+  padding: 2rem;
+}
+
+form {
+  margin-bottom: 2rem;
+}
+
+input, textarea {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+button {
+  background: #333;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+h1, h2 {
+  color: #444;
+}

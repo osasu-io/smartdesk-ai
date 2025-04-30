@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+</head>
+<body>
+  <h1>All Submitted Tickets</h1>
+
+  <table border="1" cellpadding="10">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Created By</th>
+        <th>Assigned To</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% tickets.forEach(ticket => { %>
+        <tr>
+          <td><%= ticket.title %></td>
+          <td><%= ticket.category %></td>
+          <td><%= ticket.status %></td>
+          <td><%= ticket.createdBy?.local?.email %></td>
+          <td><%= ticket.assignedTo?.local?.email || 'Unassigned' %></td>
+          <td>
+            <a href="/tickets/<%= ticket._id %>">View</a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <p><a href="/profile">← Back to My Dashboard</a></p>
+</body>
+</html>
